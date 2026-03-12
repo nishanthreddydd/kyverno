@@ -234,6 +234,7 @@ func main() {
 			apicall.NewAPICallConfiguration(maxAPICallResponseLength),
 			polexCache,
 			gcstore,
+			nil,
 		)
 		ephrCounterFunc := func(c breaker.Counter) func(context.Context) bool {
 			return func(context.Context) bool {
