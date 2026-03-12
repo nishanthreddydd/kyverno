@@ -203,6 +203,7 @@ func main() {
 			apicall.NewAPICallConfiguration(maxAPICallResponseLength),
 			polexCache,
 			gcstore,
+			nil,
 		)
 		ephrs, err := breaker.StartBackgroundReportsCounter(signalCtx, setup.MetadataClient)
 		if err != nil {

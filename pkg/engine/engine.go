@@ -24,6 +24,7 @@ import (
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	corev1listers "k8s.io/client-go/listers/core/v1"
 )
 
 type engine struct {
@@ -35,6 +36,7 @@ type engine struct {
 	ivCache              imageverifycache.Client
 	contextLoader        engineapi.ContextLoaderFactory
 	exceptionSelector    engineapi.PolicyExceptionSelector
+	nsLister             corev1listers.NamespaceLister
 	// metrics
 	resultCounter     metric.Int64Counter
 	durationHistogram metric.Float64Histogram
@@ -51,6 +53,7 @@ func NewEngine(
 	ivCache imageverifycache.Client,
 	contextLoader engineapi.ContextLoaderFactory,
 	exceptionSelector engineapi.PolicyExceptionSelector,
+	nsLister corev1listers.NamespaceLister,
 ) engineapi.Engine {
 	meter := otel.GetMeterProvider().Meter(metrics.MeterName)
 	resultCounter, err := meter.Int64Counter(
@@ -76,6 +79,7 @@ func NewEngine(
 		ivCache:              ivCache,
 		contextLoader:        contextLoader,
 		exceptionSelector:    exceptionSelector,
+		nsLister:             nsLister,
 		resultCounter:        resultCounter,
 		durationHistogram:    durationHistogram,
 	}

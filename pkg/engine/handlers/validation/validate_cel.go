@@ -27,15 +27,18 @@ import (
 	"k8s.io/apiserver/pkg/admission/plugin/webhook/matchconditions"
 	celconfig "k8s.io/apiserver/pkg/apis/cel"
 	"k8s.io/client-go/tools/cache"
+	corev1listers "k8s.io/client-go/listers/core/v1"
 )
 
 type validateCELHandler struct {
-	client engineapi.Client
+	client   engineapi.Client
+	nsLister corev1listers.NamespaceLister
 }
 
-func NewValidateCELHandler(client engineapi.Client) (handlers.Handler, error) {
+func NewValidateCELHandler(client engineapi.Client, nsLister corev1listers.NamespaceLister) (handlers.Handler, error) {
 	return validateCELHandler{
-		client: client,
+		client:   client,
+		nsLister: nsLister,
 	}, nil
 }
 
@@ -140,7 +143,14 @@ func (h validateCELHandler) Process(
 		ns = ""
 	}
 	if ns != "" {
-		if h.client != nil {
+		if h.nsLister != nil {
+			namespace, err = h.nsLister.Get(ns)
+			if err != nil {
+				return resource, handlers.WithResponses(
+					engineapi.RuleError(rule.Name, engineapi.Validation, "Error getting the resource's namespace", err, rule.ReportProperties),
+				)
+			}
+		} else if h.client != nil {
 			namespace, err = h.client.GetNamespace(ctx, ns, metav1.GetOptions{})
 			if err != nil {
 				return resource, handlers.WithResponses(
